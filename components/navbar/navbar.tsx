@@ -1,13 +1,13 @@
 "use client";
 
-import Button from "@/components/button";
 import { Link, usePathname } from "@/i18n/routing";
 import { cn } from "@/utils/cn";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import LocaleSwitcher from "../locale-switcher";
 import Logo from "../logo";
 import MobileNavbar from "./mobile-nav";
+import useMediaQuery from "@/hooks/useMediaQuery";
 
 interface Route {
   label: string;
@@ -20,6 +20,8 @@ export default function Navbar() {
   const locale = useLocale();
   const isRTL = useMemo(() => locale === "ar", [locale]);
   const routesRaw = t.raw("routes");
+  const isLaptop = useMediaQuery("(max-width: 1536px)");
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   // Memoize routes processing
   const routes = useMemo<Route[]>(() => {
@@ -48,20 +50,18 @@ export default function Navbar() {
   return (
     <nav
       className={cn(
-        "bg-secondary/95 backdrop-blur-sm",
-        "absolute left-1/2 -translate-x-1/2 z-50",
-        "flex justify-between items-center",
-        "shadow-lg shadow-black/20",
+        "fixed inset-x-0 top-0 z-50 px-[5%]",
+        "flex justify-between items-center py-4",
         "transition-all duration-300 ease-in-out",
-        "w-full top-0 rounded-none fixed",
-        'px-4 py-4'
+        "w-full rounded-none",
+        "bg-secondary/95 backdrop-blur-sm shadow-lg shadow-black/20"
       )}
       role="navigation"
       aria-label="Main navigation"
       dir={isRTL ? "rtl" : "ltr"}
     >
       {/* Logo */}
-      <Logo className=" transition-transform duration-300 hover:scale-105 w-fit" size={100} />
+      <Logo className=" transition-transform duration-300 hover:scale-105 w-fit" size={isLaptop && !isMobile ? 80: isMobile ? 60 : 100} />
 
       {/* Desktop Navigation Links */}
       <ul
@@ -76,13 +76,13 @@ export default function Navbar() {
             <Link
               href={route.href}
               className={cn(
-                "relative text-white font-semibold",
-                "transition-colors duration-200",
-                "hover:text-primary focus:outline-none rounded-md",
-                isActive(route.href) ? "text-primary" : "hover:opacity-90"
+                "navbar-link relative font-semibold group transition-colors duration-300 focus:outline-none rounded-md",
+                isActive(route.href)
+                  ? "navbar-link-active"
+                  : ""
               )}
               style={{
-                fontSize: "clamp(1rem, 1.25vw, 1.5rem)",
+                fontSize: "clamp(1rem, 0.55rem + 0.5vw, 1.75rem)",
                 paddingTop: "clamp(0.25rem, 0.5vw, 0.5rem)",
                 paddingBottom: "clamp(0.25rem, 0.5vw, 0.5rem)",
                 paddingLeft: "clamp(0.5rem, 0.75vw, 1rem)",
@@ -91,18 +91,21 @@ export default function Navbar() {
               aria-current={isActive(route.href) ? "page" : undefined}
             >
               {route.label}
-              {isActive(route.href) && (
-                <span
-                  className={cn(
-                    "absolute bottom-0 left-0 right-0 bg-primary rounded-full",
-                    "animate-in fade-in slide-in-from-left-1 duration-300"
-                  )}
-                  style={{
-                    height: "clamp(2px, 0.25vw, 4px)",
-                  }}
-                  aria-hidden="true"
-                />
-              )}
+              <span
+                className={cn(
+                  "pointer-events-none absolute left-0 right-0 rounded-full",
+                  "transition-all duration-300",
+                  "bottom-0",
+                  !isActive(route.href) &&
+                    "opacity-0 group-hover:opacity-100 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500",
+                  isActive(route.href) &&
+                    "opacity-100 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500"
+                )}
+                style={{
+                  height: "clamp(2px, 0.25vw, 4px)",
+                }}
+                aria-hidden="true"
+              />
             </Link>
           </li>
         ))}
@@ -118,13 +121,7 @@ export default function Navbar() {
         <div className="hidden md:flex">
           <LocaleSwitcher />
         </div>
-        <Button
-          className="hidden lg:flex whitespace-nowrap"
-          variant="primary"
-          aria-label={t("cta")}
-        >
-          {t("cta")}
-        </Button>
+         
         <MobileNavbar />
       </div>
     </nav>
