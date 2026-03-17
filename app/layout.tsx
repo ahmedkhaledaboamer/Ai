@@ -1,20 +1,22 @@
-import { Gilda_Display } from "next/font/google";
+import { Cairo } from "next/font/google";
 import "./globals.css";
+import { getLocale } from "next-intl/server";
 
-const gildaDisplay = Gilda_Display({
-  variable: "--font-gilda-display",
-  subsets: ["latin"],
-  weight: ["400"],
+const cairo = Cairo({
+  subsets: ["latin", "arabic"],
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
-    <html>
-      <body className={`${gildaDisplay.variable} antialiased`}>{children}</body>
+    <html lang={locale}>
+      <body className={`${cairo.className} antialiased`}>{children}</body>
     </html>
   );
 }
